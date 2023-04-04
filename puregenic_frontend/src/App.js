@@ -12,14 +12,18 @@ const App = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check if user is logged in
     const User =
       localStorage.getItem("user") !== "undefined"
         ? JSON.parse(localStorage.getItem("user"))
-        : localStorage.clear();
+        : // If user is not logged in, clear local storage
+          localStorage.clear();
 
+    // If user is not logged in, redirect to login page
     if (!User) navigate("/login");
   }, []);
 
+  // Initialize Google API
   useEffect(() => {
     function start() {
       gapi.auth2.init({
@@ -28,6 +32,7 @@ const App = () => {
       });
     }
 
+    // Load the API and make the call
     gapi.load("client:auth2", start);
   });
 

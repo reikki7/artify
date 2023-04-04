@@ -1,0 +1,79 @@
+import React, { useState, useEffect } from "react";
+import { GoogleLogout } from "react-google-login";
+import { useParams, useNavigate } from "react-router-dom";
+
+import {
+  userCreatedPinsQuery,
+  userQuery,
+  userSavedPinsQuery,
+} from "../utils/data";
+import { client } from "../client";
+import MasonryLayout from "./MasonryLayout";
+import Spinner from "./Spinner";
+import { gapi } from "gapi-script";
+
+const randomImage = "https://picsum.photos/600/800";
+
+const UserProfile = () => {
+  const { userId } = useParams();
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState(null);
+  const [savedPins, setSavedPins] = useState([]);
+  const [createdPins, setCreatedPins] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      client.fetch(userQuery(userId)),
+      client.fetch(userSavedPinsQuery(userId)),
+      client.fetch(userCreatedPinsQuery(userId)),
+    ]).then(([userData, savedPinsData, createdPinsData]) => {
+      setUser(userData);
+      setSavedPins(savedPinsData);
+      setCreatedPins(createdPinsData);
+      setLoading(false);
+    });
+  }, [userId]);
+
+  const handleLogout = () => {
+    gapi.auth2.getAuthInstance().disconnect(); // disconnect the user's Google session
+    localStorage.clear(); // clear the user's profile from localStorage
+    navigate("/login"); // navigate to the login page
+  };
+
+  if (loading) {
+    return <Spinner />;
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center">
+      <GoogleLogout
+        clientId={process.env.REACT_APP_GOOGLE_API_TOKEN}
+        buttonText="Logout"
+        onLogoutSuccess={handleLogout}
+      />
+      <div className="flex flex-col items-center">
+        <img
+          src={user && user.image ? user.image : randomImage}
+          alt={user && user.userName}
+          className="w-32 h-32 rounded-full my-4"
+        />
+        <h1 className="text-2xl font-bold mb-2">{user && user.userName}</h1>
+        <p className="text-gray-500 mb-8">
+          {user && user.bio ? user.bio : "No bio yet."}
+        </p>
+      </div>
+      <div className="w-full">
+        <h2 className="text-lg font-bold mb-4">Created Pins</h2>
+        <MasonryLayout pins={createdPins} />
+      </div>
+      <div className="w-full">
+        <h2 className="text-lg font-bold mb-4">Saved Pins</h2>
+        <MasonryLayout pins={savedPins} />
+      </div>
+    </div>
+  );
+};
+
+export default UserProfile;

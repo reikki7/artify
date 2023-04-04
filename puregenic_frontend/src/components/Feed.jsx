@@ -1,3 +1,4 @@
+// Fetching the data from the Sanity API and passing it to the MasonryLayout component.
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom';
 
@@ -6,11 +7,13 @@ import MasonryLayout from './MasonryLayout';
 import Spinner from './Spinner';
 import { feedQuery, searchQuery } from '../utils/data';
 
+// Fetching the data from the Sanity API and passing it to the MasonryLayout component.
 const Feed = () => {
   const [pins, setPins] = useState();
   const [loading, setLoading] = useState(false);
   const { categoryId } = useParams();
 
+  // Fetch data from Sanity
   useEffect(() => {
     if (categoryId) {
       setLoading(true);
@@ -29,15 +32,18 @@ const Feed = () => {
     }
   }, [categoryId]);
 
+  // Show spinner while loading
   const topic = categoryId || 'new things';
   if (loading) {
     return (
-      <Spinner message={`Thinking about ${topic}...`} />
+      <Spinner message={`Imagining ${topic}...`} />
     );
   }
 
-  if (!pins?.length) return <h2>No pins available :(</h2>
+  // Show message if no arts are available
+  if (!pins?.length) return <h2>No art available :(</h2>
 
+  // Show pins
   return (
     <div>
       {pins && (

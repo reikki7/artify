@@ -1,6 +1,6 @@
+// Main container for the app
 import React, { useState, useRef, useEffect } from "react";
 import { HiMenu } from "react-icons/hi";
-import { AiOutlineLeft } from "react-icons/ai";
 import { Link, Route, Routes } from "react-router-dom";
 
 import { Sidebar, UserProfile } from "../components";
@@ -12,20 +12,24 @@ import { userQuery } from "../utils/data";
 const Home = () => {
   const [toggleSidebar, setToggleSidebar] = useState(false);
   const [user, setUser] = useState(null);
+  // Get the user info from the local storage
   const userInfo = localStorage.getItem('user') !== 'undefined' ? JSON.parse(localStorage.getItem('user')) : localStorage.clear();
   const scrollRef = useRef(null);
 
+  // Fetch the user data from Sanity
   useEffect(() => {
     const query = userQuery(userInfo?.googleId);
 
     client.fetch(query).then((data) => {
       setUser(data[0]);
     });
-  }, []);
+  }, [userInfo?.googleId]);
 
+  // Scroll to the top of the page when the page is refreshed
   useEffect(() => {
     scrollRef.current.scrollTo(0, 0);
-  });
+  }, []);
+
 
   return (
     <div className="flex bg-gray-50 md:flex-row flex-col h-screen transition-height duration-75 ease-out">
@@ -38,14 +42,16 @@ const Home = () => {
           <Link to="/">
             <img src={logo} alt="logo" className="w-28" />
           </Link>
-          <Link to={`user-profile/${user?._id}`}>
-            <img src={user?.image} alt="user-pic" className="w-9 h-9 rounded-full " />
-          </Link>
+          {user && (
+            <Link to={`user-profile/${user._id}`}>
+              <img src={user.image} alt="user-pic" className="w-9 h-9 rounded-full " />
+            </Link>
+          )}
         </div>
         {toggleSidebar && (
-          <div className="fixed w-4/5 bg-white h-screen overflow-y-auto shadow-md z-10 animate-slide-in">
+          <div className="fixed w-4/6 bg-white h-screen overflow-y-auto shadow-md z-10 animate-slide-in">
             <div className="absolute w-full flex justify-end items-center p-4">
-              <AiOutlineLeft fontSize={25} className="cursor-pointer" onClick={() => setToggleSidebar(false)} />
+              <HiMenu fontSize={37} className="cursor-pointer mt-1" onClick={() => setToggleSidebar(false)} />
             </div>
             <Sidebar closeToggle={setToggleSidebar} user={user && user} />
           </div>

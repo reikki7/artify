@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { AiOutlineCloudUpload } from 'react-icons/ai';
-import { MdDelete } from 'react-icons/md';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { AiOutlineCloudUpload } from "react-icons/ai";
+import { MdDelete } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 
-import { client } from '../client';
-import Spinner from './Spinner';
-import { categories } from '../utils/data';
+import { client } from "../client";
+import Spinner from "./Spinner";
+import { categories } from "../utils/data";
 
 const CreatePin = ({ user }) => {
-
-  const [title, setTitle] = useState('');
-  const [about, setAbout] = useState('');
+  // States
+  const [title, setTitle] = useState("");
+  const [about, setAbout] = useState("");
   const [loading, setLoading] = useState(null);
   const [fields, setFields] = useState(null);
   const [destination, setDestination] = useState();
@@ -18,93 +18,122 @@ const CreatePin = ({ user }) => {
   const [imageAsset, setImageAsset] = useState(null);
   const [wrongImageType, setWrongImageType] = useState(false);
 
+  // Navigate to a new route
   const navigate = useNavigate();
 
+  // Upload image to Sanity
   const uploadImage = (e) => {
     const { type, name } = e.target.files[0];
 
-    if (type === 'image/png' || type === 'image/svg' || type === 'image/jpeg' || type === 'image/gif' || type === 'image/tiff' || type === 'mage/jpg') {
+    // Check if image is valid
+    if (
+      type === "image/png" ||
+      type === "image/svg" ||
+      type === "image/jpeg" ||
+      type === "image/gif" ||
+      type === "image/tiff" ||
+      type === "image/jpg"
+    ) {
       setWrongImageType(false);
       setLoading(true);
 
-      client.assets.upload('image', e.target.files[0], { contentType: type, filename: name })
+      // Upload image to Sanity
+      client.assets
+        .upload("image", e.target.files[0], {
+          contentType: type,
+          filename: name,
+        })
         .then((document) => {
           setImageAsset(document);
           setLoading(false);
-        }).catch((error) => {
-          console.log('Image upload failed', error)
         })
+        .catch((error) => {
+          console.log("Image upload failed", error);
+        });
     } else {
       setWrongImageType(true);
     }
-  }
+  };
 
   const savePin = () => {
+    // Check if all fields are filled
     if (title && about && destination && imageAsset?._id && category) {
+      // Create a new document in Sanity
       const doc = {
-        _type: 'pin',
+        _type: "pin",
         title,
         about,
         destination,
         image: {
-          _type: 'image',
+          _type: "image",
           asset: {
-            _type: 'reference',
-            _ref: imageAsset?._id
-          }
+            _type: "reference",
+            _ref: imageAsset?._id,
+          },
         },
         userId: user._id,
         postedBy: {
-          _type: 'postedBy',
-          _ref: user._id
+          _type: "postedBy",
+          _ref: user._id,
         },
         category,
-      }
+      };
+      // Save the document to Sanity
       client.create(doc).then(() => {
-        navigate('/')
-      })
+        navigate("/");
+      });
+      // If not, show an error message
     } else {
       setFields(true);
       setTimeout(() => setFields(false), 2000);
     }
-  }
+  };
 
   return (
-    <div className='flex flex-col justify-center items-center mt-5 lg:h-4/5'>
+    <div className="flex flex-col justify-center items-center mt-5 lg:h-4/5">
       {fields && (
-        <p className='text-500 mb-5 text-xl transition-all duration-150 ease-in'>Please fill in all the fields :)</p>
+        <p className="text-500 mb-5 text-xl transition-all duration-150 ease-in">
+          Please fill in all the fields :)
+        </p>
       )}
-      <div className='flex lg:flex-row flex-col justify-center items-center bg-white lg:p-5 p-3 lg:w-4/5 w-full'>
-        <div className='bg-secondaryColor p-3 flex flex-0.7 w-full'>
-          <div className='flex justify-center items-center flex-col border-2 border-dotted border-gray-300 p-3 w-full h-420'>
-
+      <div className="flex lg:flex-row flex-col justify-center items-center bg-white lg:p-5 p-3 lg:w-4/5 w-full">
+        <div className="bg-secondaryColor p-3 flex flex-0.7 w-full">
+          <div className="flex justify-center items-center flex-col border-2 border-dotted border-gray-300 p-3 w-full h-420">
             {loading && <Spinner />}
             {wrongImageType && <p>Invalid image</p>}
             {!imageAsset ? (
               <label>
-                <div className='flex flex-col items-center justify-center h-full'>
-                  <div className='flex flex-col justify-center items-center'>
-                    <p className='font-bold text-2xl'>
+                <div className="flex flex-col items-center justify-center h-full">
+                  <div className="flex flex-col justify-center items-center">
+                    <p className="font-bold text-2xl cursor-pointer">
                       <AiOutlineCloudUpload />
                     </p>
                     <p>Upload</p>
                   </div>
-                  <p className='mt-32 text-gray-400'>Use high quality image (JPG, JPEG, PNG, GIF, or TIFF)</p>
-                  <p className='mt-35 text-gray-400'>less than 20 MB</p>
+                  <p className="mt-32 text-gray-400">
+                    Use high quality image (JPG, JPEG, PNG, GIF, or TIFF)
+                  </p>
+                  <p className="mt-35 text-gray-400">less than 20 MB</p>
                 </div>
                 <input
-                  type='file'
-                  name='upload-image'
+                  type="file"
+                  name="upload-image"
                   onChange={uploadImage}
-                  className='w-0 h-0' />
+                  className="w-0 h-0"
+                />
               </label>
             ) : (
-              <div className='relative h-full'>
-                <img src={imageAsset?.url} alt='uploaded-pic' className='h-full w-full' />
+              <div className="relative h-full">
+                <img
+                  src={imageAsset?.url}
+                  alt="uploaded-pic"
+                  className="h-full w-full"
+                />
                 <button
-                  type='button'
-                  className="absolute bottom-3 right-3 p-3 rounded-full bg-white text-xl cursor-pointer outline-none hover:shadow-md transition-all duration-500 ease-in-out"
-                  onClick={() => setImageAsset(null)}>
+                  type="button"
+                  className="absolute bottom-3 right-3 p-3 rounded-full bg-slate-800 text-white text-xl opacity-70 hover:opacity-100 cursor-pointer outline-none hover:shadow-md transition-all duration-500 ease-in-out"
+                  onClick={() => setImageAsset(null)}
+                >
                   <MdDelete />
                 </button>
               </div>
@@ -122,52 +151,67 @@ const CreatePin = ({ user }) => {
           className="outline-none text-base sm:text-lg font-semibold border-b-2 border-gray-200 p-2"
         />
         {user && (
-          <div className='flex gap-2 my-2 items-center bg-white rounded-lg'>
-            <img src={user.image}
-              className='w-10 h-19 rounded-full'
-              alt='user-profile' />
-            <p className='font-bold'>{user.userName}</p>
+          <div className="flex gap-2 my-2 items-center bg-white rounded-lg">
+            <img
+              src={user.image}
+              className="w-10 h-19 rounded-full"
+              alt="user-profile"
+            />
+            <p className="font-bold">{user.userName}</p>
           </div>
         )}
         <input
           type="text"
           value={about}
           onChange={(e) => setAbout(e.target.value)}
-          placeholder="Describe your pin! :D"
+          placeholder="Describe your art! :D"
           className="outline-none text-base sm:text-lg border-b-2 border-gray-100 p-2"
         />
         <input
           type="text"
           value={destination}
           onChange={(e) => setDestination(e.target.value)}
-          placeholder="Add a url link"
+          placeholder="Add a url to your social media or commission card."
           className="outline-none text-base sm:text-lg border-b-2 border-gray-100 p-2"
         />
-        <div className='flex flex-col'>
+        <div className="flex flex-col">
           <div>
-            <p className='mb font-semibold text-lg sm:text-xl'>Choose Pin Category</p>
+            <p className="mb font-semibold text-lg sm:text-xl">
+              Art Category
+            </p>
             <select
               onChange={(e) => {
                 setCategory(e.target.value);
               }}
               className="outline-none w-4/5 text-base border-b-2 border-gray-200 p-2 rounded-md cursor-pointer"
             >
-              <option value="others" className="sm:text-bg bg-white">Select Category</option>
+              <option value="others" className="sm:text-bg bg-white">
+                Select Category
+              </option>
               {categories.map((item) => (
-                <option key={item.id} className="text-base border-0 outline-none capitalize bg-white text-black " value={item.name}>{item.name}</option>
+                <option
+                  key={item.id}
+                  className="text-base border-0 outline-none capitalize bg-white text-black "
+                  value={item.name}
+                >
+                  {item.name}
+                </option>
               ))}
             </select>
           </div>
-          <div className='flex justify-end items-end mt-5'>
+          <div className="flex justify-center items-center mt-5">
             <button
-              type='button'
+              type="button"
               onClick={savePin}
-              className='bg-red-500 text-white font-bold p-2 rounded-full w-28 outline-none'>Save Pin</button>
+              className="bg-violet-700 hover:bg-violet-400 text-white shadow-md font-bold p-2 rounded-full w-28 outline-none"
+            >
+              Publish
+            </button>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CreatePin
+export default CreatePin;

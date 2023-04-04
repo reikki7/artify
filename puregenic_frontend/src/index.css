@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 body {
-    font-family: 'latio', sans-serif;
+  font-family: "latio", sans-serif;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
